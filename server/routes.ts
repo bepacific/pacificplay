@@ -28,6 +28,8 @@ export async function registerRoutes(app: Express) {
         })
         .firstPage();
 
+      console.log('Fetched records:', records); // Debug log
+
       const transformedRecords = records.map(record => ({
         email: record.get('Email') as string,
         data: {
