@@ -14,9 +14,21 @@ const config = {
 console.log('Using table:', config.tableName); // Debug log
 
 export async function registerRoutes(app: Express) {
-  app.get("/api/airtable", async (_req, res) => {
+  // Enable CORS for all routes
+  app.use((_req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    next();
+  });
+
+  app.get("/api/airtable", async (req, res) => {
     try {
-      const filterFormula = `'test5@test5.com'={Email}`;
+      const email = req.query.email;
+      if (!email) {
+        return res.status(400).json({ error: "Email parameter is required" });
+      }
+      const filterFormula = `'${email}'={Email}`;
       console.log('Using filter formula:', filterFormula); // Debug log
 
       const url = `https://api.airtable.com/v0/${config.baseId}/${config.tableName}?filterByFormula=${encodeURIComponent(filterFormula)}`;
