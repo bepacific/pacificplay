@@ -1,34 +1,22 @@
 import type { Express } from "express";
 import { createServer } from "http";
-import { z } from "zod";
-import { recordSchema } from "@shared/schema";
-import { airtableConfigSchema } from "../client/src/lib/airtable";
 
 if (!process.env.AIRTABLE_API_KEY || !process.env.AIRTABLE_BASE_ID || !process.env.AIRTABLE_TABLE_NAME) {
   throw new Error("Missing required Airtable environment variables");
 }
 
-const config = airtableConfigSchema.parse({
+const config = {
   apiKey: process.env.AIRTABLE_API_KEY,
   baseId: process.env.AIRTABLE_BASE_ID,
   tableName: process.env.AIRTABLE_TABLE_NAME,
-});
+};
 
 console.log('Using table:', config.tableName); // Debug log
 
 export async function registerRoutes(app: Express) {
-  app.get("/api/airtable", async (req, res) => {
+  app.get("/api/airtable", async (_req, res) => {
     try {
-      console.log('Received query params:', req.query); // Debug log for incoming request
-
-      const email = z.string().email().safeParse(req.query.email);
-
-      if (!email.success) {
-        console.error('Email validation failed:', email.error);
-        return res.status(400).json({ error: "Invalid email format" });
-      }
-
-      const filterFormula = `'${email.data}'={Email}`;
+      const filterFormula = `'test1@test1.com'={Email}`;
       console.log('Using filter formula:', filterFormula); // Debug log
 
       const url = `https://api.airtable.com/v0/${config.baseId}/${config.tableName}?filterByFormula=${encodeURIComponent(filterFormula)}`;
@@ -53,17 +41,10 @@ export async function registerRoutes(app: Express) {
       }));
 
       console.log('Transformed records:', JSON.stringify(transformedRecords, null, 2)); // Debug log
-
-      const validatedRecords = z.array(recordSchema).parse(transformedRecords);
-      res.json(validatedRecords);
+      res.json(transformedRecords);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        console.error('Validation error:', error.errors); // Debug log
-        res.status(400).json({ error: "Invalid email format" });
-      } else {
-        console.error('Airtable error:', error);
-        res.status(500).json({ error: "Failed to fetch Airtable data" });
-      }
+      console.error('Airtable error:', error);
+      res.status(500).json({ error: "Failed to fetch Airtable data" });
     }
   });
 

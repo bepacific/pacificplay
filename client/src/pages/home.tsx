@@ -1,19 +1,4 @@
-import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -22,46 +7,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useToast } from "@/hooks/use-toast";
 import { recordSchema, type AirtableData } from "@shared/schema";
 
-const filterSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-});
-
-type FilterFormData = z.infer<typeof filterSchema>;
-
 export default function Home() {
-  const [email, setEmail] = useState<string>("");
-  const { toast } = useToast();
-
-  const form = useForm<FilterFormData>({
-    resolver: zodResolver(filterSchema),
-    defaultValues: {
-      email: "",
-    },
+  const { data, isLoading } = useQuery({
+    queryKey: ["/api/airtable"],
   });
-
-  const { data, isLoading, error } = useQuery<AirtableData[]>({
-    queryKey: ["/api/airtable", email],
-    enabled: Boolean(email),
-  });
-
-  const onSubmit = (values: FilterFormData) => {
-    setEmail(values.email);
-  };
-
-  // Handle error toast in useEffect
-  useEffect(() => {
-    if (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to fetch Airtable data. Please try again.",
-      });
-    }
-  }, [error, toast]);
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -70,24 +23,9 @@ export default function Home() {
           <CardTitle>Airtable Data Viewer</CardTitle>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email Filter</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter email..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit">Filter Data</Button>
-            </form>
-          </Form>
+          <p className="text-muted-foreground">
+            Displaying all data
+          </p>
         </CardContent>
       </Card>
 
@@ -122,13 +60,13 @@ export default function Home() {
             </Table>
           </CardContent>
         </Card>
-      ) : email ? (
+      ) : (
         <Card>
           <CardContent className="p-4 text-center text-muted-foreground">
-            No records found for this email
+            No records found
           </CardContent>
         </Card>
-      ) : null}
+      )}
     </div>
   );
 }
