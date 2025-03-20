@@ -1,4 +1,5 @@
 import { z } from "zod";
+import Airtable from "airtable";
 
 export const airtableConfigSchema = z.object({
   apiKey: z.string(),
@@ -7,6 +8,10 @@ export const airtableConfigSchema = z.object({
 });
 
 export type AirtableConfig = z.infer<typeof airtableConfigSchema>;
+
+export function getAirtableClient(apiKey: string) {
+  return new Airtable({ apiKey });
+}
 
 export async function fetchAirtableData(email: string) {
   const result = await fetch(`/api/airtable?email=${encodeURIComponent(email)}`, {

@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer } from "http";
 import { z } from "zod";
 import { recordSchema } from "@shared/schema";
-import { airtableConfigSchema } from "../client/src/lib/airtable";
+import { airtableConfigSchema, getAirtableClient } from "../client/src/lib/airtable";
 
 if (!process.env.AIRTABLE_API_KEY || !process.env.AIRTABLE_BASE_ID || !process.env.AIRTABLE_TABLE_NAME) {
   throw new Error("Missing required Airtable environment variables");
@@ -14,36 +14,32 @@ const config = airtableConfigSchema.parse({
   tableName: process.env.AIRTABLE_TABLE_NAME,
 });
 
+const airtable = getAirtableClient(config.apiKey);
+const base = airtable.base(config.baseId);
+
 export async function registerRoutes(app: Express) {
   app.get("/api/airtable", async (req, res) => {
     try {
       const email = z.string().email().parse(req.query.email);
 
-      const response = await fetch(
-        `https://api.airtable.com/v0/${config.baseId}/${config.tableName}?filterByFormula={email}="${email}"`,
-        {
-          headers: {
-            Authorization: `Bearer ${config.apiKey}`,
-          },
-        }
-      );
+      const records = await base(config.tableName)
+        .select({
+          filterByFormula: `{email}="${email}"`,
+        })
+        .firstPage();
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch from Airtable");
-      }
-
-      const result = await response.json();
-      const records = result.records.map((record: any) => ({
-        email: record.fields.email,
+      const transformedRecords = records.map(record => ({
+        email: record.get('email') as string,
         data: record.fields,
       }));
 
-      const validatedRecords = z.array(recordSchema).parse(records);
+      const validatedRecords = z.array(recordSchema).parse(transformedRecords);
       res.json(validatedRecords);
     } catch (error) {
       if (error instanceof z.ZodError) {
         res.status(400).json({ error: "Invalid email format" });
       } else {
+        console.error('Airtable error:', error);
         res.status(500).json({ error: "Failed to fetch Airtable data" });
       }
     }
