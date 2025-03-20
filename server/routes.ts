@@ -19,10 +19,16 @@ console.log('Using table:', config.tableName); // Debug log
 export async function registerRoutes(app: Express) {
   app.get("/api/airtable", async (req, res) => {
     try {
-      const email = z.string().email().parse(req.query.email);
-      console.log('Searching for email:', email); // Debug log
+      console.log('Received query params:', req.query); // Debug log for incoming request
 
-      const filterFormula = `'${email}'={Email}`;
+      const email = z.string().email().safeParse(req.query.email);
+
+      if (!email.success) {
+        console.error('Email validation failed:', email.error);
+        return res.status(400).json({ error: "Invalid email format" });
+      }
+
+      const filterFormula = `'${email.data}'={Email}`;
       console.log('Using filter formula:', filterFormula); // Debug log
 
       const url = `https://api.airtable.com/v0/${config.baseId}/${config.tableName}?filterByFormula=${encodeURIComponent(filterFormula)}`;
