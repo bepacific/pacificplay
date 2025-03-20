@@ -16,7 +16,7 @@ console.log('Using table:', config.tableName); // Debug log
 export async function registerRoutes(app: Express) {
   app.get("/api/airtable", async (_req, res) => {
     try {
-      const filterFormula = `'test1@test1.com'={Email}`;
+      const filterFormula = `'test5@test5.com'={Email}`;
       console.log('Using filter formula:', filterFormula); // Debug log
 
       const url = `https://api.airtable.com/v0/${config.baseId}/${config.tableName}?filterByFormula=${encodeURIComponent(filterFormula)}`;
