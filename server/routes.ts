@@ -24,7 +24,7 @@ export async function registerRoutes(app: Express) {
 
       const records = await base(config.tableName)
         .select({
-          filterByFormula: `{Email}="${email}"`,
+          filterByFormula: `'${email}'={Email}`,
         })
         .firstPage();
 
@@ -32,12 +32,7 @@ export async function registerRoutes(app: Express) {
 
       const transformedRecords = records.map(record => ({
         email: record.get('Email') as string,
-        data: {
-          Name: record.get('Name'),
-          Phone: record.get('Phone'),
-          Email: record.get('Email'),
-          LinkedIn: record.get('LinkedIn')
-        },
+        data: record.fields, // Include all fields dynamically
       }));
 
       const validatedRecords = z.array(recordSchema).parse(transformedRecords);
