@@ -14,6 +14,8 @@ const config = airtableConfigSchema.parse({
   tableName: process.env.AIRTABLE_TABLE_NAME,
 });
 
+console.log('Using table:', config.tableName); // Debug log
+
 const airtable = getAirtableClient(config.apiKey);
 const base = airtable.base(config.baseId);
 
@@ -21,24 +23,31 @@ export async function registerRoutes(app: Express) {
   app.get("/api/airtable", async (req, res) => {
     try {
       const email = z.string().email().parse(req.query.email);
+      console.log('Searching for email:', email); // Debug log
+
+      const filterFormula = `'${email}'={Email}`;
+      console.log('Using filter formula:', filterFormula); // Debug log
 
       const records = await base(config.tableName)
         .select({
-          filterByFormula: `'${email}'={Email}`,
+          filterByFormula: filterFormula,
         })
         .firstPage();
 
-      console.log('Fetched records:', records); // Debug log
+      console.log('Raw records from Airtable:', JSON.stringify(records, null, 2)); // Debug log
 
       const transformedRecords = records.map(record => ({
         email: record.get('Email') as string,
         data: record.fields, // Include all fields dynamically
       }));
 
+      console.log('Transformed records:', JSON.stringify(transformedRecords, null, 2)); // Debug log
+
       const validatedRecords = z.array(recordSchema).parse(transformedRecords);
       res.json(validatedRecords);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.error('Validation error:', error.errors); // Debug log
         res.status(400).json({ error: "Invalid email format" });
       } else {
         console.error('Airtable error:', error);
