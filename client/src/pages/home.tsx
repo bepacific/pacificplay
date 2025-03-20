@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -52,13 +52,16 @@ export default function Home() {
     setEmail(values.email);
   };
 
-  if (error) {
-    toast({
-      variant: "destructive",
-      title: "Error",
-      description: "Failed to fetch Airtable data. Please try again.",
-    });
-  }
+  // Handle error toast in useEffect
+  useEffect(() => {
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to fetch Airtable data. Please try again.",
+      });
+    }
+  }, [error, toast]);
 
   return (
     <div className="container mx-auto py-8 px-4">
