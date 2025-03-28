@@ -16,9 +16,17 @@ console.log('Using table:', config.tableName); // Debug log
 export async function registerRoutes(app: Express) {
   // Enable CORS for all routes
   app.use((_req, res, next) => {
+    // CORS (for API requests)
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET');
     res.header('Access-Control-Allow-Headers', 'Content-Type');
+
+    // 🛠️ Allow iframe embedding
+    res.removeHeader('X-Frame-Options'); // In case a middleware sets it
+
+    // Or explicitly set CSP to allow embedding
+    res.setHeader('Content-Security-Policy', "frame-ancestors *"); // Or restrict to specific domain
+
     next();
   });
 
