@@ -120,7 +120,7 @@ export default function Home() {
               className="flex items-center gap-2"
             >
               <Download size={16} />
-              Download PDF
+              Click here to download your recommendations
             </Button>
           )}
         </CardHeader>
