@@ -112,7 +112,7 @@ export default function Home() {
     <div className="container mx-auto py-8 px-4">
       <Card className="mb-8">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Airtable Data Viewer</CardTitle>
+          <CardTitle>Pacific Play Results</CardTitle>
           {data && data.length > 0 && (
             <Button 
               onClick={downloadAsPDF} 
