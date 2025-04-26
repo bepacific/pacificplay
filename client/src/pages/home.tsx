@@ -101,7 +101,7 @@ export default function Home() {
         heightLeft -= pageHeight;
       }
       
-      pdf.save(`airtable_data_${email || 'export'}.pdf`);
+      pdf.save(`Pacific_Play_Results_${email || 'export'}.pdf`);
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('Failed to generate PDF. Please try again.');
