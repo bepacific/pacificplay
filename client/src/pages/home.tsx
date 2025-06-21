@@ -69,20 +69,25 @@ export default function Home() {
     
     try {
       const canvas = await html2canvas(contentRef.current, {
-        scale: 2, // Higher scale for better quality
+        scale: 1, // Reduced scale for smaller file size
         logging: false,
         useCORS: true,
+        backgroundColor: '#ffffff', // Ensure white background
+        imageTimeout: 0, // Disable image timeout
+        removeContainer: true, // Remove temporary elements
       });
       
-      const imgData = canvas.toDataURL('image/png');
+      // Use JPEG format with compression instead of PNG
+      const imgData = canvas.toDataURL('image/jpeg', 0.8); // 0.8 quality for good balance
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4',
+        compress: true, // Enable PDF compression
       });
       
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 297; // A4 height in mm
+      const imgWidth = 190; // Slightly smaller than A4 width for margins
+      const pageHeight = 277; // Slightly smaller than A4 height for margins
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
       // Calculate how many pages we need
@@ -90,14 +95,14 @@ export default function Home() {
       let position = 0;
       
       // Add first page
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight); // Add margins
       heightLeft -= pageHeight;
       
       // Add subsequent pages if needed
       while (heightLeft > 0) {
         position = -pageHeight * (imgHeight - heightLeft) / imgHeight; // Calculate position for new page
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        pdf.addImage(imgData, 'JPEG', 10, position + 10, imgWidth, imgHeight); // Add margins
         heightLeft -= pageHeight;
       }
       
